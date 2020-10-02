@@ -2,7 +2,7 @@
 
 Assembly:
 ---
-mkdir build
+<mkdir build>
 
 cd build
 
