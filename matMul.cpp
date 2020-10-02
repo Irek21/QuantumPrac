@@ -103,10 +103,10 @@ int main(int argc, char **argv)
   }
   int globalN = 0,
       localN = 0;
-  char dataType = 0;
+  char charType = 0;
   stringstream stream;
   stream << argv[1] << " " << argv[2] << " " << argv[3];
-  stream >> globalN >> localN >> dataType;
+  stream >> globalN >> localN >> charType;
 
   MPI_Dims_create(commSize, 2, dims);
   gridRows = dims[0];
@@ -121,61 +121,68 @@ int main(int argc, char **argv)
   int zero = 0, one = 1;
   int myM = numroc_(&globalN, &localN, &myRow, &zero, &gridRows); // myM != localM in some cases
   int myN = numroc_(&globalN, &localN, &myCol, &zero, &gridCols); // myN != localN in some cases
-  if (myM * myN <= 0) {
-    exit(0);
+
+  if (myM * myN > 0) {
+    int descA[9], descB[9], descC[9], info[3] = {0};
+    descinit_(descA, &globalN, &globalN, &localN, &localN, &zero, &zero, &context, &myM, &info[0]);
+    descinit_(descB, &globalN, &globalN, &localN, &localN, &zero, &zero, &context, &myM, &info[1]);
+    descinit_(descC, &globalN, &globalN, &localN, &localN, &zero, &zero, &context, &myM, &info[2]);
+    if (info[0] * info[1] * info[2] != 0) {
+      cerr << "Error on descinit_" << endl;
+      Cblacs_gridexit(context);
+      MPI_Finalize();
+      exit(-1);
+    }
+
+    if (charType == 'z') {
+      Matrix <complexd> localA(myM, myN, 'z');
+      Matrix <complexd> localB(myM, myN, 'z');
+      Matrix <complexd> localC(myM, myN, 'z');
+      genComplMatrix (localA.data, myM, myN);
+      genComplMatrix (localB.data, myM, myN);
+      complexd alpha(1.0, 0.0), beta(0.0, 0.0);
+      char no = 'N';
+
+      double start = MPI_Wtime();
+      pzgemm_(&no, &no, &globalN, &globalN, &globalN,
+          &alpha,
+          localA.data, &one, &one, descA,
+          localB.data, &one, &one, descB,
+          &beta,
+          localC.data, &one, &one, descC);
+      double period = MPI_Wtime() - start;
+      if (mpiRoot)
+        cout << "Time on multiplication " << period << endl;
+    }
+    else {
+      Matrix <double> localA(myM, myN, 'd');
+      Matrix <double> localB(myM, myN, 'd');
+      Matrix <double> localC(myM, myN, 'd');
+      genRealMatrix(localA.data, myM, myN);
+      genRealMatrix(localB.data, myM, myN);
+      double alpha = 1.0, beta = 0.0;
+      char no = 'N';
+
+      double start = MPI_Wtime();
+      pdgemm_(&no, &no, &globalN, &globalN, &globalN,
+          &alpha,
+          localA.data, &one, &one, descA,
+          localB.data, &one, &one, descB,
+          &beta,
+          localC.data, &one, &one, descC);
+      double period = MPI_Wtime() - start;
+      if (mpiRoot)
+        cout << "Time on multiplication " << period << endl;
+    }
+
+    if (info[0] != 0) {
+      cerr << "Error on matrix multiplication" << endl;
+      Cblacs_gridexit(context);
+      MPI_Finalize();
+      exit(-1);
+    }
   }
-
-  int descA[9], descB[9], descC[9], info[3] = {0};
-  descinit_(descA, &globalN, &globalN, &localN, &localN, &zero, &zero, &context, &myM, &info[0]);
-  descinit_(descB, &globalN, &globalN, &localN, &localN, &zero, &zero, &context, &myM, &info[1]);
-  descinit_(descC, &globalN, &globalN, &localN, &localN, &zero, &zero, &context, &myM, &info[2]);
-  if (info[0] * info[1] * info[2] != 0) {
-    cerr << "Error on descinit_" << endl;
-    Cblacs_gridexit(context);
-    MPI_Finalize();
-    exit(-1);
-  }
-
-  if (dataType == 'z') {
-    Matrix <complexd> localA(myM, myN, 'z');
-    Matrix <complexd> localB(myM, myN, 'z');
-    Matrix <complexd> localC(myM, myN, 'z');
-    genComplMatrix (localA.data, myM, myN);
-    genComplMatrix (localB.data, myM, myN);
-    complexd alpha(1.0, 0.0), beta(0.0, 0.0);
-    char no = 'N';
-
-    pzgemm_(&no, &no, &globalN, &globalN, &globalN,
-        &alpha,
-        localA.data, &one, &one, descA,
-        localB.data, &one, &one, descB,
-        &beta,
-        localC.data, &one, &one, descC);
-  }
-  else {
-    Matrix <double> localA(myM, myN, 'd');
-    Matrix <double> localB(myM, myN, 'd');
-    Matrix <double> localC(myM, myN, 'd');
-    genRealMatrix(localA.data, myM, myN);
-    genRealMatrix(localB.data, myM, myN);
-    double alpha = 1.0, beta = 0.0;
-    char no = 'N';
-
-    pdgemm_(&no, &no, &globalN, &globalN, &globalN,
-        &alpha,
-        localA.data, &one, &one, descA,
-        localB.data, &one, &one, descB,
-        &beta,
-        localC.data, &one, &one, descC);
-  }
-
-  if (info[0] != 0) {
-    cerr << "Error on matrix multiplication" << endl;
-    Cblacs_gridexit(context);
-    MPI_Finalize();
-    exit(-1);
-  }
-
+  MPI_Barrier(MPI_COMM_WORLD);
   Cblacs_gridexit(context);
   MPI_Finalize();
 }
