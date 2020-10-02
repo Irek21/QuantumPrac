@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+project(matMul)
+find_package(MPI)
+include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+set (CMAKE_CXX_STANDARD 11)
+set(SRC matMul.cpp)
+add_executable(matMul ${SRC})
+target_link_libraries(matMul scalapack lapack blas gfortran  ${MPI_C_LIBRARIES})
