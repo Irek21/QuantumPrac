@@ -15,7 +15,7 @@ int main(int argc, char **argv)
   bool mpiRoot = (commRank == MASTER);
 
   if (argc < 4) {
-    if (mpiRoot) cerr << "No enough arguments. Usage: mpirun -np num_processes ./bin globalN localN n" << endl;
+    if (mpiRoot) cerr << "No enough arguments. Usage: mpirun -np num_processes ./bin globalN localN numSteps" << endl;
     MPI_Finalize();
     exit(-1);
   }
