@@ -1,6 +1,6 @@
 # Multiprocess unitary evolution via scalapack routines
 
-423 group Kamalov Irek, Gu Yu.
+423 group Gu Yu, Kamalov Irek.
 
 Building:
 ---
