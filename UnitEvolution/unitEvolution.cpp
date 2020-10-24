@@ -21,7 +21,7 @@ void unitEvolution(Matrix <complexd> &H, Matrix <complexd> &ro, int globalN, int
     Vector <complexd> w(globalN);
 
     char jobZ = 'V', upLo = 'U';
-    int workspace = globalN * globalN > globalN * 30 ? globalN * globalN : globalN * 30;
+    int workspace = globalN * globalN > globalN * 100 ? globalN * globalN : globalN * 100;
     Vector <complexd> work(workspace);
     Vector <complexd> rwork(workspace);
     Vector <complexd> iwork(workspace);
@@ -43,10 +43,10 @@ void unitEvolution(Matrix <complexd> &H, Matrix <complexd> &ro, int globalN, int
     Vector <int> iPiv(globalN);
     Matrix <complexd> U(myM, myN, globalN, localN, grid.context);
     Matrix <complexd> roEvol(myM, myN, globalN, localN, grid.context);
-    int dT = 1;
+    double dT = 0.01;
     // start evolution
-    for (int t = dT; t <= n * dT; t += dT) {
-      complexd mul(0, t * (-1 / 6.62607015));
+    for (int t = 1; t <= n; ++t) {
+      complexd mul(0, t * dT * (-1));
       for (int i = 0; i < myM; ++i) {
         for (int j = 0; j < myN; ++j) {
           expW.data[i * myN + j] = (localN * grid.myRow + i == localN * grid.myCol + j) ? exp(w.data[localN * grid.myRow + i] * mul) : complexd(0, 0);
@@ -62,25 +62,9 @@ void unitEvolution(Matrix <complexd> &H, Matrix <complexd> &ro, int globalN, int
         &beta,
         tmp.data, &one, &one, tmp.desc
       );
-      if (info != 0) {
-        cerr << "Error on matrix multiplication" << endl;
-        MPI_Finalize();
-        exit(-1);
-      }
 
-      pzgetrf_(&globalN, &globalN,
-        Z.data, &one, &one, Z.desc,
-        iPiv.data,
-        &info
-      );
-      pzgetri_(&globalN,
-        Z.data, &one, &one, Z.desc,
-        iPiv.data,
-        work.data, &workspace, iwork.data, &workspace,
-        &info
-      );
-
-      pzgemm_(&no, &no, &globalN, &globalN, &globalN,
+      char conj = 'C';
+      pzgemm_(&no, &conj, &globalN, &globalN, &globalN,
         &alpha,
         tmp.data, &one, &one, tmp.desc,
         Z.data, &one, &one, Z.desc,
@@ -96,19 +80,7 @@ void unitEvolution(Matrix <complexd> &H, Matrix <complexd> &ro, int globalN, int
         tmp.data, &one, &one, tmp.desc
       );
 
-      pzgetrf_(&globalN, &globalN,
-        U.data, &one, &one, U.desc,
-        iPiv.data,
-        &info
-      );
-      pzgetri_(&globalN,
-        U.data, &one, &one, U.desc,
-        iPiv.data,
-        work.data, &workspace, iwork.data, &workspace,
-        &info
-      );
-
-      pzgemm_(&no, &no, &globalN, &globalN, &globalN,
+      pzgemm_(&no, &conj, &globalN, &globalN, &globalN,
         &alpha,
         tmp.data, &one, &one, tmp.desc,
         U.data, &one, &one, U.desc,
