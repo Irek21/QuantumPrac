@@ -25,5 +25,6 @@ Emin = minimum excited atoms in system
 
 Emax = maximum excited atoms in system
 
+Vectors a, w, phi are read from files. phi is normalized after read. It is available to modify them in "Build"-folder.
 
-Vectors a, w, phi are read from files. phi is normalized after read. It is available to modify them in Build folder.
+If length of basis is > 8, output goes to "Build/output.txt"
