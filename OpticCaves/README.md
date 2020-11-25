@@ -25,4 +25,5 @@ Emin = minimum excited atoms in system
 
 Emax = maximum excited atoms in system
 
-Vectors a, w, phi are read from files. phi is nomralized after read. It is available to modify them in Build folder.
+
+Vectors a, w, phi are read from files. phi is normalized after read. It is available to modify them in Build folder.
