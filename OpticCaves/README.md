@@ -21,9 +21,9 @@ numQBits = number of atoms
 
 numSteps = number of evolution steps
 
-Emin = minimum excited atoms in system
+Emin = minimum excited atoms
 
-Emax = maximum excited atoms in system
+Emax = maximum excited atoms
 
 Vectors a, w, phi are read from files. phi is normalized after read. It is available to modify them in "Build"-folder.
 
