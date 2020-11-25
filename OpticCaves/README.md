@@ -17,7 +17,7 @@ Command line format:
 mpirun -np P ./opticCaves numQBits numSteps Emin Emax
 mpirun -np P ./opticCaves numQBits numSteps Emin Emax
 ```
-numQBits = number of atoms in system which model N-qbit system
+numQBits = number of atoms
 
 numSteps = number of evolution steps
 
