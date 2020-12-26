@@ -1,30 +1,22 @@
-# Multiprocess building of distributed Hamiltonian and ro dynamics with sink.
+# Multiprocess unitary evolution via scalapack routines
 
-423 group Gu Yu, Kamalov Irek. Variant 1.
+423 group Gu Yu, Kamalov Irek.
 
 Building:
 ---
 ```shell
-mkdir Build
-cd Build
+mkdir build
+cd build
 cmake ..
 make
-mpirun -np 4 ./opticCaves 3 3 1 3
+mpirun -np 4 ./unitEvolution 16 8 5
 ```
 
 Command line format:
 ```
-mpirun -np P ./opticCaves numQBits numSteps Emin Emax
-mpirun -np P ./opticCaves numQBits numSteps Emin Emax
+mpirun -np P ./unitEvolution N localN numSteps
+mpirun -np P ./unitEvolution N localN numSteps
 ```
-numQBits = number of atoms
-
 numSteps = number of evolution steps
 
-Emin = minimum excited atoms
-
-Emax = maximum excited atoms
-
-Vectors a, w, phi are read from files. phi is normalized after read. It is available to modify them in "Build" folder.
-
-If length of basis is > 8, output goes to "Build/output.txt"
+It is also available to modify input binary matrix files "ro" and "H" via initFiles.cpp program.
